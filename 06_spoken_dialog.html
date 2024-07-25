@@ -1,0 +1,146 @@
+<html lang="ja">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<title>Spoken Dialog by Javascript</title>
+<style>
+   body {
+    background-color: #ffebee;
+    color: #b71c1c;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #d32f2f;
+    text-shadow: 2px 2px #ff6f61;
+  }
+
+  button {
+    background-color: #d32f2f;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #b71c1c;
+  }
+
+  #resultOutput {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #ffccbc;
+    border: 2px solid #d32f2f;
+    border-radius: 4px;
+    color: #b71c1c;
+  }
+
+  span {
+    color: #d32f2f;
+  }
+</style>
+</head>
+<body>
+
+<h1>課題：音声対話</h1>
+
+<p>
+<button id="startButton">start</button>
+<button id="stopButton">stop</button>
+</p>
+
+<p>
+<div id="resultOutput"></div>
+</p>
+<script>
+// 応答の定義（ハッシュ）    
+var response = {
+    "あなたは誰ですか":"わたしはアレクサではありません",
+    "何歳ですか":"え、わたし、何歳にみえますか",
+    "元気ですか":"元気ですよー",
+    "好きな食べ物は":"焼肉です",
+    "諦めたい":"諦めんなよ",
+    "後悔してます":"過去のことを思っちゃダメだよ。何であんなことしたんだろって、怒りに変わってくるから。未来のことも思っちゃダメ。大丈夫かな、あはぁ～ん。不安になってくるでしょ？ならば、一所懸命、一つの所に命を懸ける！そうだ！今ここを生きていけば、みんなイキイキするぞ！！",
+    "おはよう":"おはようございます",
+};
+
+const startButton = document.querySelector('#startButton'); // 開始ボタン
+const stopButton = document.querySelector('#stopButton'); // 停止ボタン
+const resultOutput = document.querySelector('#resultOutput'); // 結果出力エリア
+
+if (!'SpeechSynthesisUtterance' in window) {
+    alert("あなたのブラウザはSpeech Synthesis APIに未対応です。");
+}
+const tts = new SpeechSynthesisUtterance(); // TTSインスタンスを生成
+//tts.text = textForm.value; // テキストを設定
+tts.lang = "ja-JP"; // 言語(日本語)、英語の場合はen-US
+tts.rate = 1.0; // 速度
+tts.pitch = 1.0; // 声の高さ
+tts.volume = 1.0; // 音量
+
+SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+if (!'SpeechRecognition' in window) {
+    alert("あなたのブラウザはSpeech Recognition APIに未対応です。");
+}
+
+const asr = new SpeechRecognition(); // ASRインスタンスを生成
+asr.lang = "ja-JP"; // 言語（日本語）
+asr.interimResults = true; // 途中結果出力をオン
+asr.continuous = true; // 継続入力をオン
+
+let output = ''; // 出力
+
+// 認識結果が出力されたときのイベントハンドラ
+asr.onresult = function(event){
+    let transcript = event.results[event.resultIndex][0].transcript; // 結果文字列
+
+    let output_not_final = '';
+    if (event.results[event.resultIndex].isFinal) { // 結果が確定（Final）のとき
+	    asr.abort(); // 音声認識を停止
+      // 部分一致をチェック
+      for (let key in response) {
+        if (transcript.includes(key)) {
+            responseText = response[key];
+            break;
+        }
+      }
+      output +=transcript + " => " + responseText + '<br>';
+	
+	    tts.text = responseText;
+	    // 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
+	    tts.onend = function(event){
+	        asr.start(); // 音声認識を再開
+	    }
+
+	    speechSynthesis.speak(tts); // 再生
+    } else { // 結果がまだ未確定のとき
+        output_not_final = '<span style="color:#ddd;">' + transcript + '</span>';
+    }
+    resultOutput.innerHTML = output + output_not_final;
+}
+
+// 開始ボタンのイベントハンドラ
+startButton.addEventListener('click', function() {
+    asr.start();
+})
+
+// 停止ボタンのイベントハンドラ
+stopButton.addEventListener('click', function() {
+    asr.stop();
+})
+</script>
+
+</body>
+</html>
