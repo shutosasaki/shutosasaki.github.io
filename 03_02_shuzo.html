@@ -7,50 +7,50 @@
 <title>元気に修造</title>
 <style>
     body {
-     background-color: #ffebee;
-     color: #b71c1c;
-     font-family: 'Arial', sans-serif;
-     text-align: center;
-     padding: 20px;
-   }
+        background-color: #ffebee;
+        color: #b71c1c;
+        font-family: 'Arial', sans-serif;
+        text-align: center;
+        padding: 20px;
+    }
 
-   h1 {
-     color: #d32f2f;
-     text-shadow: 2px 2px #ff6f61;
-   }
+    h1 {
+        color: #d32f2f;
+        text-shadow: 2px 2px #ff6f61;
+    }
 
-   button {
-     background-color: #d32f2f;
-     border: none;
-     color: white;
-     padding: 15px 32px;
-     text-align: center;
-     text-decoration: none;
-     display: inline-block;
-     font-size: 16px;
-     margin: 4px 2px;
-     cursor: pointer;
-     border-radius: 4px;
-     transition: background-color 0.3s ease;
-   }
+    button {
+        background-color: #d32f2f;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
 
-   button:hover {
-     background-color: #b71c1c;
-   }
+    button:hover {
+        background-color: #b71c1c;
+    }
 
-   #resultOutput {
-     margin-top: 20px;
-     padding: 10px;
-     background-color: #ffccbc;
-     border: 2px solid #d32f2f;
-     border-radius: 4px;
-     color: #b71c1c;
-   }
+    #resultOutput {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #ffccbc;
+        border: 2px solid #d32f2f;
+        border-radius: 4px;
+        color: #b71c1c;
+    }
 
-   span {
-     color: #d32f2f;
-   }
- </style>
+    span {
+        color: #d32f2f;
+    }
+</style>
 </head>
 <body>
 
@@ -66,15 +66,13 @@
 </p>
 
 <script>
-// 応答の定義（ハッシュ）    
+// 応答の定義（ハッシュ）
 var response = {
     "励まして": ["修造先生からみんなへエールを送るぞ", "https://www.youtube.com/watch?v=zhwLxNjK97A"],
-    "あなたは誰":"松岡修造、56歳",
-    "何歳ですか":"56歳",
-    "元気ですか":"元気です",
-    "諦めたい":"諦めんなよ",
-    "後悔してます":"過去のことを思っちゃダメだよ。何であんなことしたんだろって、怒りに変わってくるから。未来のことも思っちゃダメ。大丈夫かな、あはぁ～ん。不安になってくるでしょ？ならば、一所懸命、一つの所に命を懸ける！そうだ！今ここを生きていけば、みんなイキイキするぞ！！",
-    "おはよう":"おはよう",
+    "幸せになりたい": ["今日から君はシャボン玉","https://youtu.be/qkC6_BH0Ny4?si=9ntRnNQpuC2M0_8z"],
+    "今すごく忙しいです":["口にしないようにしよう","https://youtu.be/nHfsuBdOczE?si=uAfxTNxpkS8ql9_6"],
+    "なにもうまいこといきません":[ "遊んでいこうよ","https://youtu.be/ucJ6C9E5s24?si=iGp__dogq5xQfq3X"],
+    "諦めたい":["諦めんなよ","https://youtu.be/KjOr5barw04"],
 };
 
 const startButton = document.querySelector('#startButton'); // 開始ボタン
@@ -85,7 +83,6 @@ if (!'SpeechSynthesisUtterance' in window) {
     alert("あなたのブラウザはSpeech Synthesis APIに未対応です。");
 }
 const tts = new SpeechSynthesisUtterance(); // TTSインスタンスを生成
-//tts.text = textForm.value; // テキストを設定
 tts.lang = "ja-JP"; // 言語(日本語)、英語の場合はen-US
 tts.rate = 1.0; // 速度
 tts.pitch = -4.0; // 声の高さ
@@ -109,77 +106,76 @@ const queryURL = URL + APPID;
 
 // 認識結果が出力されたときのイベントハンドラ
 asr.onresult = function(event){
-    let transcript = event.results[event.resultIndex][0].transcript; // 結果文字列
+    let transcript = event.results[event.resultIndex][0].transcript.trim(); // 結果文字列
 
     let output_not_final = '';
     if(event.results[event.resultIndex].isFinal) { // 結果が確定（Final）のとき
-      asr.abort(); // 音声認識を停止
-      let answer;
-        
-      let keys = Object.keys(response);
-      keys.forEach(function(key) {
-          let pattern = new RegExp('.*' + key + '.*'); // 正規表現の定義 . 任意の1文字, * 0回以上繰り返し
-          if(pattern.test(transcript)){ // transcriptにpatternがマッチしたらtrue
-          answer = response[key];
-              console.log(pattern + " : " + answer);
-          }
-      });
+        asr.abort(); // 音声認識を停止
+        let answer;
 
-      if(typeof answer == 'undefined'){
-        // API呼び出しの準備
-        var postdata = {
-            "id": "1234-1", // JSON-RPC2.0 id、値は任意で、指定した値がレスポンスのidになる。
-            "jsonrpc" : "2.0", // APIで固定
-            "method" : "jlp.nluservice.analyze", // APIで固定
-            "params" : { "q" : transcript } // 解析対象のテキスト
-        };
-        var jsondata = JSON.stringify(postdata);
+        // 応答のチェック
+        let ret = response[transcript];
 
-        const request = new XMLHttpRequest();
-        request.open('POST', queryURL, true);
-        request.setRequestHeader('Content-Type', 'application/json');
-        request.responseType = 'json'; // レスポンスはJSON形式に変換
+        if (typeof ret == 'undefined') {
+            // API呼び出しの準備
+            var postdata = {
+                "id": "1234-1", // JSON-RPC2.0 id、値は任意で、指定した値がレスポンスのidになる。
+                "jsonrpc" : "2.0", // APIで固定
+                "method" : "jlp.nluservice.analyze", // APIで固定
+                "params" : { "q" : transcript } // 解析対象のテキスト
+            };
+            var jsondata = JSON.stringify(postdata);
 
-        // HTTPの状態が変化したときのイベントハンドラ
-        request.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                // readyState == 4 操作完了
-                // status == 200 リクエスト成功（HTTPレスポンス）
-                let res = this.response; // 結果はJSON形式
+            const request = new XMLHttpRequest();
+            request.open('POST', queryURL, true);
+            request.setRequestHeader('Content-Type', 'application/json');
+            request.responseType = 'json'; // レスポンスはJSON形式に変換
 
-                // レスポンスの処理
-                if(res.result && res.result.PARAM_TEXT) {
-                    answer = res.result.PARAM_TEXT;
-                } else {
-                    answer = "ごめんなさい。わかりません。";
+            // HTTPの状態が変化したときのイベントハンドラ
+            request.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    // readyState == 4 操作完了
+                    // status == 200 リクエスト成功（HTTPレスポンス）
+                    let res = this.response; // 結果はJSON形式
+
+                    // レスポンスの処理
+                    if (res.result && res.result.PARAM_TEXT) {
+                        answer = res.result.PARAM_TEXT;
+                    } else {
+                        answer = "ごめんなさい。わかりません。";
+                    }
+
+                    output += transcript + ' => ' + answer + '<br>';
+                    tts.text = answer;
+
+                    // 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
+                    tts.onend = function(event){
+                        asr.start(); // 音声認識を再開
+                    }
+
+                    speechSynthesis.speak(tts); // 再生
+                    resultOutput.innerHTML = output;
                 }
+            };
+            // HTTPリクエストの実行
+            request.send(jsondata);
+        } else {
+            answer = ret[0];
+            let webpage = ret[1];
 
-                output += transcript + ' => ' + answer + '<br>';
-                tts.text = answer;
+            output += transcript + ' => ' + answer + '<br>';
 
-                // 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
-                tts.onend = function(event){
-                    asr.start(); // 音声認識を再開
+            tts.text = answer;
+            // 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
+            tts.onend = function(event){
+                if (typeof webpage != 'undefined') {
+                    location.href = webpage; // ページを移動
                 }
-
-                speechSynthesis.speak(tts); // 再生
-                resultOutput.innerHTML = output;
+                asr.start(); // 音声認識を再開
             }
-        };
-        // HTTPリクエストの実行
-        request.send(jsondata);
-      } else {
-          output += transcript + ' => ' + answer + '<br>';
 
-          tts.text = answer;
-          // 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
-          tts.onend = function(event){
-              asr.start(); // 音声認識を再開
-          }
-
-          speechSynthesis.speak(tts); // 再生
-      }
-
+            speechSynthesis.speak(tts); // 再生
+        }
     } else { // 結果がまだ未確定のとき
         output_not_final = '<span style="color:#ddd;">' + transcript + '</span>';
         resultOutput.innerHTML = output + output_not_final;
@@ -197,9 +193,6 @@ stopButton.addEventListener('click', function() {
     asr.stop();
 });
 </script>
-<!-- Yahoo!JAPANのAPIを利用したときはクレジット表記が必要 -->
-<p>
-Web Services by Yahoo! JAPAN （https://developer.yahoo.co.jp/sitemap/）
-</p>
+
 </body>
 </html>
